@@ -2,6 +2,7 @@ require "excon"
 require "excon/error"
 require "json"
 require "progresso/token"
+require "progresso/errors"
 require "active_support/core_ext/string"
 
 module Progresso
@@ -69,7 +70,7 @@ module Progresso
       bm_configuration
       bm_staff_on_behalf
       bm_assign_to
-      detention_event?
+      detention_event
       bm_structure
     ).each do |resource|
       define_method resource do |options = {}|
@@ -78,15 +79,13 @@ module Progresso
 
         content_type = response.headers["Content-Type"].match(/^(\w*\/\w*)/)[1]
 
-        if content_type == "application/json"
-          json_data = JSON.parse(response.body) rescue {}
-
-          # error = handle_exceptions(response.body, json_data)
-          # raise error if error
-
-          json_data
-        else
+        case response.status
+        when 204
+          []
+        when 404
           { "Error" => response.body }
+        when 200
+          JSON.parse(response.body)
         end
       end
     end
@@ -98,11 +97,11 @@ module Progresso
         options[:headers] ||= {}
         options[:headers]['Authorization'] = "Bearer #{@token.token}"
 
-        http_request path, options
+        http_get_request path, options
       end
 
       def fetch_token
-        response = http_request "/Token",
+        response = http_post_request "/Token",
           params: {
             username: @username,
             password: @password,
@@ -112,15 +111,26 @@ module Progresso
             'Content-Type' => 'application/x-www-form-urlencoded'
           }
 
+        if response.status != 200
+          raise InvalidCredentialsError, "Username or password incorrect"
+        end
+
         json = JSON.parse(response.body)
 
         @token = Token.new(json)
       end
 
-      def http_request path, options = {}
-        Excon.get(
+      def http_post_request path, options = {}
+        Excon.post(
           "#{@url}#{path}",
           body: URI.encode_www_form(options[:params]),
+          headers: options[:headers]
+        )
+      end
+
+      def http_get_request path, options = {}
+        Excon.get(
+          "#{@url}#{path}?#{URI.encode_www_form(options[:params])}",
           headers: options[:headers]
         )
       end

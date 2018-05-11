@@ -3,7 +3,7 @@ PATH
   specs:
     progresso (0.1.0)
       activesupport (>= 4)
-      excon (~> 0.62.0)
+      excon (>= 0.45)
 
 GEM
   remote: https://rubygems.org/
