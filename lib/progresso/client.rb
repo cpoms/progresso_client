@@ -1,4 +1,5 @@
 require "excon"
+require "excon/error"
 require "json"
 require "progresso/token"
 require "progresso/errors"
