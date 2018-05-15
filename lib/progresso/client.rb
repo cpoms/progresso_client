@@ -82,7 +82,7 @@ module Progresso
         when 204
           []
         when 404
-          { "Error" => response.body }
+          raise InvalidRequestError, response.body
         when 200
           JSON.parse(response.body)
         end
