@@ -9,7 +9,7 @@ module Progresso
     def initialize(subdomain, username, password)
       @url = "https://#{subdomain}.progresso.net/v2"
       @username = username
-      @password = URI.encode(password)
+      @password = password
     end
 
     %w(
