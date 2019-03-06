@@ -31,6 +31,7 @@ module Progresso
       attendance_codes
       learner_roll_call_attendance
       learner_lesson_attendance
+      learner_roll_call_attendance_summary
       get_photo
       udf
       udf_values
@@ -76,13 +77,13 @@ module Progresso
         resource = resource.split('_').map {|w| w.capitalize}.join
         response = http_request_with_token("/#{resource}", params: options)
 
-        content_type = response.headers["Content-Type"].match(/^(\w*\/\w*)/)[1]
-
         case response.status
         when 204
           []
         when 404
           raise InvalidRequestError, response.body
+        when 401
+          raise InsufficientAccessError, response.status_line
         when 200
           JSON.parse(response.body)
         end
