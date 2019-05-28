@@ -72,6 +72,7 @@ module Progresso
       bm_assign_to
       detention_event
       bm_structure
+      religion_lookup
     ).each do |resource|
       define_method resource do |options = {}|
         resource = resource.split('_').map {|w| w.capitalize}.join
